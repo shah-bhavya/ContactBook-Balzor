@@ -1,0 +1,105 @@
+﻿@page "/contact/edit/{Id}"
+@using ContactBook.Server.Data
+@inject ContactService contactService
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Edit Contacts</PageTitle>
+<h1>Edit Contacts</h1>
+<div class="container create-form">
+
+  <EditForm Model="@obj" OnValidSubmit="HandleValidSubmit">
+      <DataAnnotationsValidator />
+     <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Name" class="control-label">Name</label>
+                <input form="Name" class="form-control" @bind="@obj.Name" />
+                <ValidationMessage For="@(() => obj.Name)" /> 
+                
+            </div>
+        </div>
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="Title" class="control-label">Title</label>
+                <input form="Title" class="form-control" @bind="@obj.Title" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNo1" class="control-label">Phone No.1</label>
+                <input form="PhoneNo1" class="form-control" @bind="@obj.PhoneNo1" />
+                <ValidationMessage For="@(() => obj.PhoneNo1)" /> 
+            </div>
+        </div>
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNo2" class="control-label">Phone No.2</label>
+                <input form="PhoneNo2" class="form-control" @bind="@obj.PhoneNo2" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Email" class="control-label">Email</label>
+                <input form="Email" class="form-control" @bind="@obj.Email" />
+            </div>
+        </div>
+
+    </div>
+    <br />
+     <div class="row">
+
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="IsFavourite" class="control-label">Is Favourite</label>
+                <input form="IsFavourite" type="checkbox" @bind="@obj.IsFavourite" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Save"/>
+                <input type="button" class="btn btn-primary" @onclick="@Cancel" value="Cancel"/>
+            </div>
+        </div>
+    </div>
+
+  </EditForm>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    Data.Contact obj = new Data.Contact();
+
+    protected override async Task OnInitializedAsync()
+    {
+      obj = await Task.Run(() => contactService.GetById(new Guid(Id)));
+    }
+
+    protected async void UpdateContact()
+    {
+        await contactService.UpdateContact(obj);
+        NavigationManager.NavigateTo("contact");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("contact");
+    }
+
+    private void HandleValidSubmit()  
+    {
+        UpdateContact(); 
+    } 
+}

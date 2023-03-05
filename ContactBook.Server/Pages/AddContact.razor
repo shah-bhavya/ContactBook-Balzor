@@ -1,0 +1,116 @@
+﻿@page "/contact/add"
+@using ContactBook.Server.Data
+@inject ContactService contactService
+@inject NavigationManager NavigationManager
+@inject IWebHostEnvironment Environment
+@using System 
+@using System.IO
+
+<PageTitle>Create Contacts</PageTitle>
+<h1>Create Contacts</h1>
+<div class="container create-form">
+
+  <EditForm Model="@obj" OnValidSubmit="HandleValidSubmit">
+     <DataAnnotationsValidator />
+
+     <InputFile OnChange="@LoadFile" />
+     <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Name" class="control-label">Name</label>
+                <InputText id="Name" class="form-control" @bind-Value="@obj.Name" />
+                <ValidationMessage For="@(() => obj.Name)" />  
+            </div>
+        </div>
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="Title" class="control-label">Title</label>
+                <InputText id="Title" class="form-control" @bind-Value="@obj.Title" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNo1" class="control-label">Phone No.1</label>
+                <InputText id="PhoneNo1" class="form-control" @bind-Value="@obj.PhoneNo1" />
+                <ValidationMessage For="@(() => obj.PhoneNo1)" /> 
+            </div>
+        </div>
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNo2" class="control-label">Phone No.2</label>
+                <InputText id="PhoneNo2" class="form-control" @bind-Value="@obj.PhoneNo2" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Email" class="control-label">Email</label>
+                <InputText id="Email" class="form-control" @bind-Value="@obj.Email" />
+            </div>
+        </div>
+
+    </div>
+    <br />
+     <div class="row">
+         <div class="col-md-6">
+            <div class="form-group">
+                <label for="IsFavourite" class="control-label">Is Favourite</label>
+                <InputCheckbox id="IsFavourite"  @bind-Value="@obj.IsFavourite" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Save"/>
+                <input type="button" class="btn btn-primary" @onclick="@Cancel" value="Cancel"/>
+            </div>
+        </div>
+    </div>
+
+  </EditForm>
+</div>
+
+@code {
+    private IBrowserFile loadedFile { get; set; }
+    Data.Contact obj = new Data.Contact();
+    private long maxFileSize = 1024 * 15;
+    protected async void CreateContact()
+    {
+        await contactService.AddContact(obj);
+        NavigationManager.NavigateTo("contact");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("contact");
+    }
+
+    private void HandleValidSubmit()
+    {
+        CreateContact();
+    }
+
+    private async void LoadFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var trustedFileNameForFileStorage = Path.GetRandomFileName();
+            var path = Path.Combine(Environment.ContentRootPath, "wwwroot/images", e.File.Name);
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await e.File.OpenReadStream().CopyToAsync(fs);
+            obj.PhotoPath = e.File.Name;
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+}

@@ -1,0 +1,184 @@
+﻿@page "/contact"
+
+@using ContactBook.Server.Data
+@inject ContactService contactService
+@inject NavigationManager navigationManager
+@inject IModalService modal
+@inject IWebHostEnvironment Environment
+
+@using System 
+@using System.IO
+
+<style>
+.profile-pic{
+    /*position: relative;
+
+    width:120px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0px;
+    z-index: 1001;
+    padding: 10px;*/
+    border-radius: 50%;
+    box-shadow: 0px 0px 5px 0px #c1c1c1;
+    cursor: pointer;
+    height: 50px;
+}
+.profile-pic img{
+
+    border-radius: 50%;
+    box-shadow: 0px 0px 5px 0px #c1c1c1;
+    cursor: pointer;
+    height: 150px;
+} 
+</style>
+
+<PageTitle>Contacts</PageTitle>
+
+<h1>Contacts</h1>
+<div class="container" >
+  <div class="row mt-3">
+    <div class="col-lg-6">
+       <label for="table-filtering-search" class="col-xs-3 col-sm-auto col-form-label">Search Contacts:</label>
+
+        <input type="text" class="form-control" placeholder="Search contact by name"
+               @bind="searchString" @bind:event="oninput" @onkeyup="FilterItem" />
+            @if (searchString.Length > 0)
+            {
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-danger" @onclick="ResetSearch">
+                                                Reset
+                                            </button>
+                                        </div>
+            }
+    </div>
+
+    <div class="col-lg-6">
+        <label for="table-filtering-search" class="col-xs-3 col-sm-auto col-form-label" style="margin-top: 35px" >&nbsp;</label>
+      <a href="/contact/add" class="btn btn-success btn-md" align="right"> <i class="oi oi-plus"></i> Create New</a>
+    </div>
+
+
+  </div>
+
+  <table class="table table-striped mt-5">
+    <thead>
+      <tr>
+          <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Phone 1</th>
+        <th scope="col">Phone 2</th>
+        <th scope="col">Title</th>
+        <th scope="col">Email</th>
+        <th scope="col">Favourite</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+            @if (lstContacts.Count > 0)
+            {
+                @foreach (var item in lstContacts)
+                {
+                                              <tr>
+                                                  <td>
+                                                      @if(item.PhotoPath != null)
+                            {
+                                <img src="@Path.Combine(path,item.PhotoPath??"")" class="profile-pic"/>
+                            }
+                            else
+                            {
+                                <img src="@Path.Combine(path,"no-image.png")" class="profile-pic"/>
+                            }
+                            
+                                                  </td>
+                                                <td>
+                            @item.Name
+                                                </td>
+                                                <td>@item.PhoneNo1</td>
+                                                <td>@item.PhoneNo2</td>
+                                                <td>@item.Title</td>
+                                                <td>@item.Email</td>
+                                                <td @onclick="()=>UpdateFavouriteFlag(item)">
+                            @if (item.IsFavourite)
+                            {
+                                            <i class="oi oi-heart" style="color:red; font-size:23px;"></i>
+                            }
+                            else
+                            {
+                                            <i class="oi oi-heart" style="font-size:23px;"></i> 
+                            }
+
+                                                  </td>
+                                                <td>
+                                                  <a class="btn btn-primary btn-sm" href="/contact/edit/@item.ContactId"><i class="oi oi-pencil"></i> </a>
+                                                  <button class="btn btn-danger btn-sm" @onclick="() => Delete(item)"><i class="oi oi-trash"></i> </button>
+                                                  <button @onclick="@(()=>modal.Show<ViewContact>(item.Name + "'s Profile", parameters: new ModalParameters()
+                                                .Add(nameof(ViewContact.Contact), item)))" class="btn btn-sm btn-primary"><i class="oi oi-eye"></i></button>
+                                                </td>
+                                              </tr>
+                } 
+            }
+            else
+            {
+                             <tr>
+                                    <td colspan="7" style="text-align:center">No Record Found.</td>
+                            </tr>
+            }
+    </tbody>
+
+  </table>
+  <div class="d-flex justify-content-between p-2">
+  </div>
+</div>
+
+
+@code {
+
+    List<Data.Contact> lstContacts;
+    protected string searchString { get; set; } = string.Empty;
+    protected List<Data.Contact> searchUserData = new();
+    private string path { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        lstContacts = new List<Data.Contact>();
+        lstContacts = await contactService.GetAll();
+        searchUserData = lstContacts;
+        path = Path.Combine("https://localhost:7276/", "images/");
+    }
+
+    protected void FilterItem()
+    {
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            lstContacts = searchUserData
+                .Where(x => x.Name.IndexOf(searchString, StringComparison.OrdinalIgnoreCase) != -1)
+                .ToList();
+        }
+        else
+            lstContacts = searchUserData;
+    }
+
+    public void ResetSearch()
+    {
+        throw new InvalidOperationException("Current count is too big!");
+        searchString = string.Empty;
+        lstContacts = searchUserData;
+    }
+
+    protected async void Delete(Data.Contact obj)
+    {
+        await contactService.DeleteContact(obj);
+        lstContacts.Remove(obj);
+    }
+
+    protected async void UpdateFavouriteFlag(Data.Contact obj)
+    {
+        obj.IsFavourite = !obj.IsFavourite;
+        await contactService.UpdateContact(obj);
+
+    }
+
+
+}

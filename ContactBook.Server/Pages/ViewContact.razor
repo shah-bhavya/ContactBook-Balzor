@@ -1,0 +1,39 @@
+﻿<style>
+   .mb-3 {
+       margin-bottom:3px;
+   }
+</style>
+
+<div class="mb-3">
+@if (Contact.IsFavourite)
+{
+   <i class="oi oi-heart" style="color:red; font-size:23px;"></i>
+}
+
+</div>
+
+<div class="mb-3">
+                <label for="recipient-name" class="col-form-label">Name:</label>
+    @Contact.Name
+</div>
+
+<div class="mb-3">
+                <label for="recipient-name" class="col-form-label">Phone No1:</label>
+    @Contact.PhoneNo1
+</div>
+
+<div class="mb-3">
+                <label for="recipient-name" class="col-form-label">Phone No2:</label>
+    @Contact.PhoneNo2
+</div>
+
+<div class="mb-3">
+                <label for="recipient-name" class="col-form-label">Email:</label>
+    @Contact.Email
+</div>
+
+
+@code {
+    [Parameter]
+    public Data.Contact Contact { get; set; }
+}
